@@ -3,11 +3,11 @@ kind: Pod
 metadata:
   name: resultapp-pod
   labels:
-         name: resultapp-pod
-         app: demo
+    name: resultapp-pod
+    app: demo
 spec:
   containers:
   - name: resultapp
     image: dockersamples/examplevotingapp_result
     ports:
-            - containerPort: 80
+    - containerPort: 80

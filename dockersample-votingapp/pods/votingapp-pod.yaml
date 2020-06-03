@@ -3,11 +3,11 @@ kind: Pod
 metadata:
   name: votingapp-pod
   labels:
-          name: votingapp-pod
-          app: demo
+    name: votingapp-pod
+    app: demo
 spec:
   containers:
   - name: votingapp-oid
     image: dockersamples/examplevotingapp_vote
     ports:
-            - containerPort: 80
+    - containerPort: 80

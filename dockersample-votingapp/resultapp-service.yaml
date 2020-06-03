@@ -3,16 +3,13 @@ kind: Service
 metadata:
   name: result-service
   labels:
-          name: result-service
-          app: demo
+    name: result-service
+    app: demo
 spec:
   type: LoadBalancer
   ports:
   - targetPort: 80
     port: 80
   selector:
-          name: resultapp-pod
-          app: demo
-
-
-
+    name: resultapp-pod
+    app: demo

@@ -3,13 +3,13 @@ kind: Service
 metadata:
   name: db
   labels:
-          name: db-service
-          app: demo
+    name: db-service
+    app: demo
 spec:
   ports:
   - targetPort: 5432
     port: 5432
   selector:
-          name: postgres-pod
-          app: demo
+    name: postgres-pod
+    app: demo
 
