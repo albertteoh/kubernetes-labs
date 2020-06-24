@@ -1,0 +1,131 @@
+Q1
+
+vi nginx-pod.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+spec:
+  containers:
+  - name: nginx-pod
+    image: nginx:alpine<Paste>
+
+---------------------
+
+Q2
+$ cat messaging-pod.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: messaging
+  labels:
+    tier: msg
+spec:
+  containers:
+  - name: messaging
+    image: redis:alpine
+
+---------------------
+
+Q3
+
+$ kubectl  create namespace apx-x9984574
+
+
+---------------------
+
+Q4
+
+$ kubectl get nodes -o json > /opt/outputs/nodes-z3444kd9.json
+
+---------------------
+
+Q5
+
+$ kubectl expose pod messaging --port=6379 --name messaging-service
+
+--------------------
+
+Q6
+$ kubectl create deployment hr-web-app --image=kodekloud/webapp-color --dry-run -o yaml > hr-web-app-deployment.yaml
+
+# Set replicas: 2
+$ kubectl create -f hr-web-app-deployment.yaml
+
+# check
+$ kubectl get deployments.apps
+
+--------------------
+
+Q7
+
+$ cat /etc/kubernetes/manifests/static-busybox-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: static-busybox
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    args:
+    - sleep
+    - "1000"
+
+--------------------
+
+Q8
+
+$ cat temp-bus-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: temp-bus
+  namespace: finance
+spec:
+  containers:
+  - name: temp-bus
+    image: redis:alpine
+
+--------------------
+
+Q9
+
+$ kubectl get pod orange -o yaml > orange-pod.yaml
+
+# Fix the initContainer sleep command
+$ kubectl delete pod orange
+$ kubectl create -f orange-pod.yaml
+
+# check
+$ kubectl get pod orange
+
+--------------------
+
+Q10
+
+$ kubectl expose deployment hr-web-app --type=NodePort --name=hr-web-app-service --port=8080 --target-port=8080 >hr-web-app-service.yaml
+# add nodePort: 30082
+$ vi hr-web-app-service.yaml
+$ kubectl create -f hr-web-app-service.yaml
+
+
+--------------------
+
+Q11
+
+$ cat pv-analytics-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-analytics
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/pv/data-analytics"
+$ kubectl get nodes -o=jsonpath='{.items[*].status.nodeInfo.osImage}' > /opt/outputs/nodes_os_x43kj56.txt

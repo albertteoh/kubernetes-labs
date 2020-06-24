@@ -1,0 +1,162 @@
+Q1
+
+ETCDCTL_API=3 etcdctl --cert=/etc/kubernetes/pki/etcd/peer.crt --cacert=/etc/kubernetes/pki/etcd/ca.crt --key=/etc/kubernetes/pki/etcd/peer.key snapshot save /tmp/etcd-backup.db
+
+-----------
+Q2 
+
+$ cat redis-storage-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-storage
+spec:
+  containers:
+  - name: redis-storage
+    image: redis:alpine
+    volumeMounts:
+    - name: redis-storage
+      mountPath: /data/redis
+  volumes:
+  - name: redis-storage
+    emptyDir: {}
+
+$ kubectl create -f redis-storage-pod.yaml
+
+-----------
+Q3 
+
+$ cat super-user-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: super-user-pod
+spec:
+  containers:
+  - name: super-user-pod
+    image: busybox:1.28
+    securityContext:
+      capabilities:
+        add: ["SYS_TIME"]
+    args:
+    - sleep
+    - "4800"
+
+$ kubectl create -f super-user-pod.yaml
+
+-----------
+Q4 
+
+$ cat pvc-1.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+
+$ kubectl create -f pvc-1.yaml
+
+$ cat use-pv.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: use-pv
+  name: use-pv
+spec:
+  volumes:
+  - name: use-pv-volume
+    persistentVolumeClaim:
+      claimName: my-pvc
+
+  containers:
+  - image: nginx
+    name: use-pv
+    resources: {}
+    volumeMounts:
+    - mountPath: /data
+      name: use-pv-volume
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+
+$ kubectl create -f use-pv.yaml
+
+-----------
+Q5 
+
+$ kubectl create deployment nginx-deploy --image=nginx:1.16 --dry-run -o yaml > nginx-deploy.yaml
+$ kubectl apply -f nginx-deploy.yaml --record
+$ kubectl edit deployments.apps nginx-deploy --record
+
+-----------
+Q6
+
+$ cat john.csr | base64 | tr -d "\n"
+$ cat john-csr.yaml
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+  name: john-developer
+spec:
+  groups:
+  - system:authenticated
+  request: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQ1ZEQ0NBVHdDQVFBd0R6RU5NQXNHQTFVRUF3d0VhbTlvYmpDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRApnZ0VQQURDQ0FRb0NnZ0VCQU1UTUNCNURBZWp0STdRNHZRY0N6ZEdyVXM1MVMzQW1mZVFhc2VqRUtFdDFWY2lmClUxMXBGQTJCcktvUmxYK01UMk1uNkwzelJ2VW40SUVTR3ovWWkvS05hUU5yYUpxQUhlZEtNeW5xSzdyaFYzaFkKMHpqcDFpZnZ6YUw2TXd1b21vMUpCZ0tQWHVQNVlpZWhsNWNXNHl6WFNCOHhTRTgxRUwwNlZUWk93S0lUUVNmbQp4QkVLbDdYdzQ3ejZZL0JMTlpjSVZDVzR1OFBzWmJUNXdiN1BRWEFHb082UGdlK1Q1TVpSd1NiVFgwbzVvaEQ5ClRMR0xUT28wcExBMUFvZlBudExIamxTUUlFUDZxQnNhek5XdVpRTkF6Z0orNWVVbzVyKzMwOTJzaW9GekdUVisKUGJ4cU5GTnlGNVVIdVNPdjkzSDhKeUFDZTVyUnpXSVZBOGJsM204Q0F3RUFBYUFBTUEwR0NTcUdTSWIzRFFFQgpDd1VBQTRJQkFRQUNlenRrcmNxZ0hVVXFzM3VLQ3pSRmFWQnhHMnFIQS9xdkwzK1pvU1dQbHhaTTBEQytXS0dtCmRwWHNEajY2a2s1b0pHaWFFTkcyVzNRWVZQakRxMWVVWE9PZldQZmk2Y00xaHU0Z29TV0RURUtOQnJBME5SelYKRDV1SHFqeW9qY3dLVlJVcmdOamdma1ZWSXArYS9FeW9UT0xNM3Y4dFUyY3kxdHluWW1jQVIrU2hNTllxS2VEVgo5bEpjbElEQWduV0Yvc3EvTjZxcldPSjNMdFYvRW9nR2dobFNBT0tCdUFYaksvMXRpNlBkTjlUaE9FdHVjNUt2CmlxZzI5UVNZTkh6dWNHUGZabUJwRTFsTjRkZXBacHFTWGRLcjNMcWdYbmFpdlJZS3czeldySkZEZ2F6blVlZ1IKelhBQnprWnRtd05QL0cxZ21lMW56MXc4QmpWN0E5SmQKLS0tLS1FTkQgQ0VSVElGSUNBVEUgUkVRVUVTVC0tLS0tCg==
+  usages:
+  - client auth
+$ kubectl apply -f john-csr.yaml
+
+$ kubectl get certificatesigningrequests.certificates.k8s.io
+$ kubectl certificate approve john-developer
+$ kubectl create role developer --verb=create,list,get,update,delete --namespace=development --resource=pods
+$ kubectl get roles
+$ kubectl get roles --namespace development
+$ kubectl -n development get rolebindings.rbac.authorization.k8s.io
+$ kubectl create rolebinding dev-binding --namespace=development --user=john --role=developer
+$ kubectl -n development get rolebindings.rbac.authorization.k8s.io
+$ kubectl auth can-i list pod --as=john --namespace=development
+$ kubectl auth can-i watch pod --as=john --namespace=development
+ 
+-----------
+Q7
+
+$ kubectl run busybox-resolver --generator=run-pod/v1 --image=busybox:1.28 --restart=Never  --rm -it -- nslookupnginx-resolver-service > nginx.svc
+$ kubectl run busybox-resolver --generator=run-pod/v1 --image=busybox:1.28 --restart=Never  --rm -it -- nslookup10-244-1-12.default.pod > nginx.pod
+
+-----------
+Q8
+
+# Place this file in node01:/etc/kubernetes/manifests
+
+$ cat nginx-critical-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: nginx-critical
+  name: nginx-critical
+spec:
+  containers:
+  - image: nginx
+    name: nginx-critical
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+# check it's running in node01
+$ kubectl get pods -o wide
+
+# delete the node
+$ kubectl delete pod nginx-critical
+
+# check it's still running in node01
+$ kubectl get pods -o wide
